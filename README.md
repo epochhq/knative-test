@@ -20,7 +20,7 @@ go mod download
 go -C devtools mod download
 ```
 
-The isolated devtools module pins Staticcheck and gocyclo. It keeps checker dependencies out of the application's module graph. The selected supported compiler includes the [crypto/x509 fix](https://pkg.go.dev/vuln/GO-2026-6809). This compiler pairs with the eligible analyzer; the next pairing trigger is recorded in tasks/follow-ups.md.
+The isolated devtools module pins Staticcheck and gocyclo. It keeps checker dependencies out of the application's module graph. The selected supported compiler includes the [crypto/x509 fix](https://pkg.go.dev/vuln/GO-2026-6809). Go 1.27.3 pairs with Staticcheck 2026.2.2, which supports its export format. The declared Nix workflow retains ARM and Intel macOS plus ARM and x64 Linux; its package sets require macOS 14 or later, above the compiler's macOS 13 minimum.
 
 ## Checks
 
@@ -42,7 +42,7 @@ The formatter bridge makes unformatted Go source a failing check. Tests use in-p
 
 ## Packaging
 
-The official Go builder and runtime are pinned by index digest. Production module checksums are copied before dependency download, and a failed download stops the build. Module builds are readonly. Build metadata retains VERSION, COMMIT and BUILD_TIME arguments.
+The official Go builder and runtime are pinned by index digest. Production module metadata is copied before dependency download, and a failed download stops the build. Module builds are readonly. Build metadata retains VERSION, COMMIT and BUILD_TIME arguments.
 
 ```bash
 docker build --target dependencies -t knative-test-dependencies .
@@ -57,7 +57,7 @@ The dependency target prepares the module cache before the offline application b
 
 ## Dependency updates
 
-Renovate requires 14-day published timestamps for normal updates and vulnerability alerts. The exact Go 1.26.10 crypto/x509 release is the sole compiler age exception. Go module versions, compiler source and builder image update as a group. Supported-family constraints retain the compatible Go 1.26 line until the paired compiler/analyzer change is qualified. Native Nix lock regeneration owns archive hashes. Package-set revisions use the maintained GitHub digest datasource's commit timestamps. The Renovate operator must support native postUpgradeTasks.installTools and allow exactly `nix --extra-experimental-features 'nix-command flakes' flake lock`.
+Renovate requires 14-day published timestamps for normal updates and vulnerability alerts. The exact Go 1.27.3 crypto/x509 release is the sole compiler age exception. Go module versions, compiler source and builder image update as a group. Supported-family constraints retain the qualified Go 1.27 line. Native Nix lock regeneration owns archive hashes. Package-set revisions use the maintained GitHub digest datasource's commit timestamps. The Renovate operator must support native postUpgradeTasks.installTools and allow exactly `nix --extra-experimental-features 'nix-command flakes' flake lock`.
 
 The pinned runtime includes the [Alpine security fixes](https://alpinelinux.org/posts/Alpine-3.21.9-3.22.7-3.23.7-3.24.3-released.html), which remediates the CA compromise and core-package vulnerabilities. Its trust bundle is copied from the pinned official builder, so packaging does not resolve mutable apk packages.
 
